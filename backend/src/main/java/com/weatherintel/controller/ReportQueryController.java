@@ -151,8 +151,35 @@ public class ReportQueryController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Report> getReportById(@PathVariable Long id) {
+        return reportRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/recent")
     public ResponseEntity<List<Report>> getRecentReports() {
         return ResponseEntity.ok(reportRepository.findTop50ByOrderByCreatedAtDesc());
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getReportStats() {
+        List<Report> all = reportRepository.findAll();
+        long total = all.size();
+        long verified = all.stream().filter(r -> r.getStatus() == ReportStatus.ADMIN_VERIFIED).count();
+        long actioned = all.stream().filter(r -> r.getStatus() == ReportStatus.ACTIONED).count();
+        long aiChecked = all.stream().filter(r -> r.getStatus() == ReportStatus.AI_CHECKED).count();
+        long falseAlarm = all.stream().filter(r -> r.getStatus() == ReportStatus.FALSE_ALARM).count();
+        long rumors = all.stream().filter(r -> Boolean.TRUE.equals(r.getIsRumor())).count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("total", total);
+        stats.put("adminVerified", verified);
+        stats.put("actioned", actioned);
+        stats.put("aiChecked", aiChecked);
+        stats.put("falseAlarm", falseAlarm);
+        stats.put("rumors", rumors);
+        return ResponseEntity.ok(stats);
     }
 }

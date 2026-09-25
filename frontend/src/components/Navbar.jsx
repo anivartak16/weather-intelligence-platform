@@ -1,21 +1,30 @@
 /**
  * Navbar Component
- * Meta-minimalist navigation with role switcher, tactical actions, and audio/theme toggles
+ * KrishiLink-inspired National Navigation Header with react-router-dom NavLinks,
+ * role switcher, active live badges, audio alerts, and theme toggle.
  */
 import React from 'react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext.jsx';
 import { 
     Shield, 
+    Home, 
+    LayoutDashboard,
+    Map, 
     Radio, 
+    Send, 
+    Fingerprint, 
+    Share2, 
     FileText, 
-    PlayCircle, 
+    Award, 
+    Bell,
     Volume2, 
     VolumeX, 
     Sun, 
     Moon, 
     User, 
-    Flame,
-    Activity
+    PhoneCall, 
+    Sparkles 
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -26,24 +35,43 @@ export default function Navbar() {
         toggleTheme, 
         soundEnabled, 
         toggleSound, 
-        downloadSitrep, 
-        openSimulationModal,
-        telemetry
+        reports, 
+        openSimulationModal
     } = useApp();
 
     const isOps = activeRole === 'OPS_DISPATCHER';
+    const criticalCount = reports.filter(r => r.properties?.severity === 'CRITICAL').length;
+
+    const navItems = [
+        { path: '/', label: 'National Portal', icon: Home, end: true },
+        { path: '/dashboard', label: 'Command Center', icon: LayoutDashboard },
+        { path: '/map', label: 'GIS Radar Map', icon: Map },
+        { path: '/incidents', label: 'Incident Desk', icon: Radio, count: reports.length, alert: criticalCount > 0 },
+        { path: '/report', label: 'Report Disaster', icon: Send },
+        { path: '/track', label: 'Tracking Ledger', icon: Fingerprint },
+        { path: '/social', label: '#IMD Social Hub', icon: Share2 },
+        { path: '/sitrep', label: 'Tactical SITREP', icon: FileText },
+        { path: '/sentinels', label: 'Civic Sentinels', icon: Award },
+        { path: '/alerts', label: 'Alerts', icon: Bell }
+    ];
 
     return (
-        <header className="navbar-header">
+        <header className="navbar-header-sticky">
             <div className="navbar-container">
                 {/* Brand & Authority */}
-                <div className="navbar-brand-group">
+                <Link 
+                    to="/" 
+                    className="navbar-brand-group" 
+                    title="National Weather Intelligence & Ground Truth System"
+                >
                     <div className="brand-logo-icon">
-                        <Shield size={22} className="text-brand-primary" />
+                        <Shield size={24} className="text-brand-primary" />
+                        <span className="logo-radar-ring"></span>
                     </div>
                     <div>
                         <div className="brand-title-row">
-                            <span className="brand-title">SURAKSHA-NET</span>
+                            <span className="brand-title">सुरक्षा-नेट</span>
+                            <span className="brand-title-sub">SURAKSHA-NET</span>
                             <span className="brand-live-badge">
                                 <span className="pulse-dot"></span>
                                 LIVE
@@ -53,23 +81,32 @@ export default function Navbar() {
                             National Weather Intelligence & Ground Truth System
                         </span>
                     </div>
-                </div>
+                </Link>
 
-                {/* Center Weather Alert Badge */}
-                <div className="navbar-center-telemetry">
-                    <div className="telemetry-pill">
-                        <Activity size={14} className="text-brand-primary" />
-                        <span className="telemetry-city">{telemetry.city || 'Indore'}</span>
-                        <span className="telemetry-divider">•</span>
-                        <span className="telemetry-metric">{telemetry.temperature || 31}°C</span>
-                        <span className="telemetry-divider">•</span>
-                        <span className={`telemetry-status ${telemetry.precipitationMm > 50 ? 'status-alert' : 'status-ok'}`}>
-                            {telemetry.precipitationMm > 0 ? `${telemetry.precipitationMm} mm rain` : 'Fair Weather'}
-                        </span>
-                    </div>
-                </div>
+                {/* Primary Navigation Links with real URLs */}
+                <nav className="navbar-primary-nav" aria-label="Portal Navigation">
+                    {navItems.map(item => {
+                        const Icon = item.icon;
+                        return (
+                            <NavLink
+                                key={item.path}
+                                to={item.path}
+                                end={item.end}
+                                className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}
+                            >
+                                <Icon size={15} className="nav-item-icon" />
+                                <span>{item.label}</span>
+                                {item.count !== undefined && (
+                                    <span className={`nav-count-badge ${item.alert ? 'alert' : ''}`}>
+                                        {item.count}
+                                    </span>
+                                )}
+                            </NavLink>
+                        );
+                    })}
+                </nav>
 
-                {/* Right Controls */}
+                {/* Right Utility Controls */}
                 <div className="navbar-controls-group">
                     {/* Role Switcher Pill */}
                     <div className="role-switch-container">
@@ -78,56 +115,55 @@ export default function Navbar() {
                             onClick={() => !isOps || toggleRole()}
                             title="Switch to Citizen Scout View"
                         >
-                            <User size={14} />
+                            <User size={13} />
                             <span>Citizen</span>
                         </button>
                         <button 
                             className={`role-switch-btn ${isOps ? 'active' : ''}`}
                             onClick={() => isOps || toggleRole()}
-                            title="Switch to Ops Commander View"
+                            title="Switch to DEOC Commander View"
                         >
-                            <Radio size={14} />
-                            <span>Ops Center</span>
+                            <Shield size={13} />
+                            <span>Commander</span>
                         </button>
                     </div>
 
-                    {/* SITREP Tactical Export */}
-                    <button 
-                        className="control-icon-btn sitrep-btn"
-                        onClick={downloadSitrep}
-                        title="Download Operational SITREP Report"
-                    >
-                        <FileText size={16} />
-                        <span className="btn-label-desktop">SITREP</span>
-                    </button>
-
-                    {/* Crisis Simulation Trigger */}
+                    {/* Simulation Button */}
                     <button 
                         className="control-icon-btn simulation-btn"
                         onClick={openSimulationModal}
-                        title="Open Crisis Simulation Scenarios"
+                        title="Execute Crisis Scenario Drill"
                     >
-                        <PlayCircle size={16} />
-                        <span className="btn-label-desktop">Simulate</span>
+                        <Sparkles size={15} />
                     </button>
 
-                    {/* Audio Toggle */}
+                    {/* Audio Alert Siren */}
                     <button 
                         className="control-icon-btn"
                         onClick={toggleSound}
-                        title={soundEnabled ? "Mute audio alerts" : "Enable audio alerts"}
+                        title={soundEnabled ? "Mute audio sirens" : "Enable audio sirens"}
                     >
                         {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
                     </button>
 
-                    {/* Theme Toggle */}
+                    {/* Theme Mode Toggle */}
                     <button 
                         className="control-icon-btn"
                         onClick={toggleTheme}
-                        title={theme === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                        title={theme === 'light' ? "Switch to Command Dark Mode" : "Switch to Daylight Mode"}
                     >
                         {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
                     </button>
+
+                    {/* Emergency 112 SOS Button */}
+                    <a 
+                        href="tel:112" 
+                        className="nav-emergency-sos-btn"
+                        title="Emergency Rescue: Dial 112"
+                    >
+                        <PhoneCall size={13} />
+                        <span>112 SOS</span>
+                    </a>
                 </div>
             </div>
         </header>

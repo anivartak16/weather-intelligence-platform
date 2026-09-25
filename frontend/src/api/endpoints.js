@@ -70,9 +70,33 @@ export const endpoints = {
         headers: { 'Accept': 'text/plain' }
     }),
 
+    // Tracking Ledger
+    getTracking: (trackingId) => request(`/api/reports/tracking/${encodeURIComponent(trackingId)}`),
+
+    // Social Media #IMD Scraper & Stream
+    getSocialStream: () => request('/api/social/stream'),
+    scrapeSocialNow: (count = 3) => request(`/api/social/scrape-now?count=${count}`, {
+        method: 'POST'
+    }),
+    getSocialAnalytics: () => request('/api/social/analytics'),
+
     // Crisis Simulation Triggers
     triggerSimulation: (scenario = 'FLASH_FLOOD') => request('/api/simulate/crisis', {
         method: 'POST',
         body: JSON.stringify({ scenario })
+    }),
+
+    // Executive Big Data Analytics
+    getAnalyticsSummary: () => request('/api/analytics/summary'),
+    getAnalyticsTrends: () => request('/api/analytics/trends'),
+    getHazardBreakdown: () => request('/api/analytics/hazard-breakdown'),
+
+    // Citizen Disaster Preparedness Guidelines
+    getGuidelines: () => request('/api/guidelines'),
+
+    // Perceptual Hash Forensic Comparison
+    compareForensics: (hash1, hash2) => request('/api/forensics/compare', {
+        method: 'POST',
+        body: JSON.stringify({ hash1, hash2 })
     })
 };

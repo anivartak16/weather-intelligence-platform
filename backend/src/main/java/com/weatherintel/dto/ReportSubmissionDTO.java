@@ -42,7 +42,9 @@ public class ReportSubmissionDTO {
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+    public void setReportedBy(String reportedBy) { if (this.username == null || this.username.isBlank()) this.username = reportedBy; }
 
     public MultipartFile getMediaFile() { return mediaFile; }
     public void setMediaFile(MultipartFile mediaFile) { this.mediaFile = mediaFile; }
+    public void setImage(MultipartFile image) { if (this.mediaFile == null) this.mediaFile = image; }
 }

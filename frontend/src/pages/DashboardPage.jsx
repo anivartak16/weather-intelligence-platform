@@ -1,139 +1,112 @@
 /**
  * Dashboard Page
- * Main page coordinating the 5 meta-minimalist vertical sections,
- * sticky sub-navigation, tactical modals, and live toast notifications
+ * KrishiLink-inspired Enterprise National Weather Intelligence Platform
+ * Multi-view architecture with Gov bar, unified sticky navbar, 
+ * dedicated full-capability viewports, and official national footer.
  */
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import GovTopBar from '../components/GovTopBar.jsx';
 import Navbar from '../components/Navbar.jsx';
-import HeroSection from '../components/HeroSection.jsx';
+import PortalHeroSection from '../components/PortalHeroSection.jsx';
 import GisMapSection from '../components/GisMapSection.jsx';
 import IncidentFeedSection from '../components/IncidentFeedSection.jsx';
+import SocialMediaSection from '../components/SocialMediaSection.jsx';
 import ReportTrackerSection from '../components/ReportTrackerSection.jsx';
 import CivicTrustSection from '../components/CivicTrustSection.jsx';
+import SitrepSection from '../components/SitrepSection.jsx';
+import NationalFooter from '../components/NationalFooter.jsx';
 import ActionModal from '../components/ActionModal.jsx';
 import ForensicsModal from '../components/ForensicsModal.jsx';
 import SimulationModal from '../components/SimulationModal.jsx';
 import { useApp } from '../context/AppContext.jsx';
-import { Activity, Map, Radio, Send, Award, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import { 
+    CheckCircle, 
+    AlertTriangle, 
+    Info 
+} from 'lucide-react';
 
 export default function DashboardPage() {
-    const { notification } = useApp();
-    const [activeSection, setActiveSection] = useState('operational-overview');
-
-    // Track active scrolling section
-    useEffect(() => {
-        const handleScroll = () => {
-            const sections = [
-                'operational-overview',
-                'gis-map-section',
-                'incident-feed-section',
-                'report-tracker-section',
-                'civic-trust-section'
-            ];
-
-            const scrollPos = window.scrollY + 200;
-            for (const sectionId of sections) {
-                const el = document.getElementById(sectionId);
-                if (el) {
-                    const top = el.offsetTop;
-                    const height = el.offsetHeight;
-                    if (scrollPos >= top && scrollPos < top + height) {
-                        setActiveSection(sectionId);
-                        break;
-                    }
-                }
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const scrollTo = (id) => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-        }
-    };
+    const { 
+        activeTab, 
+        notification 
+    } = useApp();
 
     return (
         <div className="dashboard-layout">
-            {/* Top Navigation */}
+            {/* Official Government of India Top Header */}
+            <GovTopBar />
+
+            {/* KrishiLink-style Unified Navigation Header */}
             <Navbar />
 
-            {/* Sticky Sub-Navigation Bar */}
-            <div className="subnav-sticky-bar">
-                <div className="subnav-container">
-                    <button 
-                        className={`subnav-pill ${activeSection === 'operational-overview' ? 'active' : ''}`}
-                        onClick={() => scrollTo('operational-overview')}
-                    >
-                        <Activity size={14} />
-                        <span>1. Overview</span>
-                    </button>
-                    <button 
-                        className={`subnav-pill ${activeSection === 'gis-map-section' ? 'active' : ''}`}
-                        onClick={() => scrollTo('gis-map-section')}
-                    >
-                        <Map size={14} />
-                        <span>2. Geo-Hazard GIS</span>
-                    </button>
-                    <button 
-                        className={`subnav-pill ${activeSection === 'incident-feed-section' ? 'active' : ''}`}
-                        onClick={() => scrollTo('incident-feed-section')}
-                    >
-                        <Radio size={14} />
-                        <span>3. Ground Truth Feed</span>
-                    </button>
-                    <button 
-                        className={`subnav-pill ${activeSection === 'report-tracker-section' ? 'active' : ''}`}
-                        onClick={() => scrollTo('report-tracker-section')}
-                    >
-                        <Send size={14} />
-                        <span>4. Citizen Portal</span>
-                    </button>
-                    <button 
-                        className={`subnav-pill ${activeSection === 'civic-trust-section' ? 'active' : ''}`}
-                        onClick={() => scrollTo('civic-trust-section')}
-                    >
-                        <Award size={14} />
-                        <span>5. Sentinel Trust</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* 5 Vertical Thematic Sections */}
+            {/* Professional Focused Workspace Views */}
             <main className="dashboard-main-content">
-                <HeroSection />
-                <GisMapSection />
-                <IncidentFeedSection />
-                <ReportTrackerSection />
-                <CivicTrustSection />
+                {/* 1. National Portal Home Overview */}
+                {(activeTab === 'home' || activeTab === 'overview' || !activeTab) && (
+                    <div className="tab-view-container animate-fade-in">
+                        <PortalHeroSection />
+                    </div>
+                )}
+
+                {/* 2. GIS Command Radar */}
+                {activeTab === 'gis' && (
+                    <div className="tab-view-container animate-fade-in">
+                        <GisMapSection />
+                    </div>
+                )}
+
+                {/* 3. Incident Desk & Ground Truth */}
+                {activeTab === 'feed' && (
+                    <div className="tab-view-container animate-fade-in">
+                        <IncidentFeedSection />
+                    </div>
+                )}
+
+                {/* 4. Citizen Disaster Reporting Wizard */}
+                {activeTab === 'report' && (
+                    <div className="tab-view-container animate-fade-in">
+                        <ReportTrackerSection mode="report" />
+                    </div>
+                )}
+
+                {/* 5. Citizen Tracking Ledger & Audit Trail */}
+                {activeTab === 'tracker' && (
+                    <div className="tab-view-container animate-fade-in">
+                        <ReportTrackerSection mode="tracker" />
+                    </div>
+                )}
+
+                {/* 6. #IMD Social Stream & Rumor Meter */}
+                {activeTab === 'social' && (
+                    <div className="tab-view-container animate-fade-in">
+                        <SocialMediaSection />
+                    </div>
+                )}
+
+                {/* 7. Tactical SITREP (DEOC) */}
+                {activeTab === 'sitrep' && (
+                    <div className="tab-view-container animate-fade-in">
+                        <SitrepSection />
+                    </div>
+                )}
+
+                {/* 8. Civic Sentinel Trust & Leaderboard */}
+                {activeTab === 'trust' && (
+                    <div className="tab-view-container animate-fade-in">
+                        <CivicTrustSection />
+                    </div>
+                )}
             </main>
 
-            {/* Minimalist Meta-Style Footer */}
-            <footer className="dashboard-footer">
-                <div className="footer-container">
-                    <div className="footer-left">
-                        <span className="footer-brand">SURAKSHA-NET</span>
-                        <span className="footer-tagline">
-                            Ministry of Earth Sciences (MoES) & IMD Validated Ground Truth Framework
-                        </span>
-                    </div>
-                    <div className="footer-right">
-                        <span>Smart India Hackathon • Problem Statement 69</span>
-                        <span className="footer-divider">•</span>
-                        <span>Zero-Distraction Architecture</span>
-                    </div>
-                </div>
-            </footer>
+            {/* Comprehensive National Footer */}
+            <NationalFooter />
 
-            {/* Floating Tactical Modals */}
+            {/* Floating Operations Modals */}
             <ActionModal />
             <ForensicsModal />
             <SimulationModal />
 
-            {/* Live Floating Toast Notification */}
+            {/* Toast Notifications */}
             {notification && (
                 <div className={`floating-toast toast-${notification.type}`}>
                     {notification.type === 'success' && <CheckCircle size={18} className="text-success" />}

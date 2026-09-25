@@ -38,7 +38,7 @@ public class ReportIngestionController {
      * Accepts multipart citizen ground reports: text, coordinates, image/media.
      * Decoupled via Kafka: returns 202 ACCEPTED with tracking receipt immediately.
      */
-    @PostMapping(value = "/submit")
+    @PostMapping(value = {"", "/submit"})
     public ResponseEntity<Map<String, Object>> submitCitizenReport(
             @ModelAttribute ReportSubmissionDTO submission) {
 

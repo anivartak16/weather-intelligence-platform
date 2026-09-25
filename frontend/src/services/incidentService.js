@@ -26,9 +26,13 @@ class IncidentService {
         formData.append('latitude', reportData.latitude);
         formData.append('longitude', reportData.longitude);
         formData.append('reportedBy', reportData.reportedBy || 'citizen_user');
+        formData.append('username', reportData.reportedBy || 'citizen_user');
+        if (reportData.city) formData.append('city', reportData.city);
+        if (reportData.district) formData.append('district', reportData.district);
 
         if (imageFile) {
             formData.append('image', imageFile);
+            formData.append('mediaFile', imageFile);
         }
 
         try {

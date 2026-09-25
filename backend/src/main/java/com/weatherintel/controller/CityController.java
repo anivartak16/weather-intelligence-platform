@@ -22,4 +22,23 @@ public class CityController {
     public ResponseEntity<List<Map<String, Object>>> getIndianCities() {
         return ResponseEntity.ok(cityLookupService.getIndianCities());
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Map<String, Object>>> searchCities(
+            @RequestParam(required = false, defaultValue = "") String query) {
+        List<Map<String, Object>> allCities = cityLookupService.getIndianCities();
+        if (query == null || query.isBlank()) {
+            return ResponseEntity.ok(allCities.stream().limit(15).toList());
+        }
+        String q = query.trim().toLowerCase();
+        List<Map<String, Object>> matched = allCities.stream()
+                .filter(c -> {
+                    String name = c.get("name") != null ? c.get("name").toString().toLowerCase() : "";
+                    String state = c.get("state") != null ? c.get("state").toString().toLowerCase() : "";
+                    return name.contains(q) || state.contains(q);
+                })
+                .limit(20)
+                .toList();
+        return ResponseEntity.ok(matched);
+    }
 }

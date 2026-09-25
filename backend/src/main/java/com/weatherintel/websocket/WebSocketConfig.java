@@ -20,10 +20,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Primary STOMP WebSocket endpoint with SockJS fallback
-        registry.addEndpoint("/ws-weather")
+        registry.addEndpoint("/ws", "/ws-weather")
                 .setAllowedOriginPatterns("*");
 
-        registry.addEndpoint("/ws-weather")
+        registry.addEndpoint("/ws", "/ws-weather")
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }

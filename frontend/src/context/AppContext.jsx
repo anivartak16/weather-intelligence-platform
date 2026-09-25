@@ -20,6 +20,7 @@ export function AppProvider({ children }) {
     const [leaderboard, setLeaderboard] = useState(MOCK_LEADERBOARD);
     
     // UI state
+    const [activeTab, setActiveTab] = useState('home'); // 'home' | 'gis' | 'feed' | 'report' | 'tracker' | 'social' | 'trust' | 'sitrep'
     const [activeRole, setActiveRole] = useState('OPS_DISPATCHER'); // 'CITIZEN' | 'OPS_DISPATCHER'
     const [theme, setTheme] = useState('light'); // 'light' | 'dark'
     const [soundEnabled, setSoundEnabled] = useState(true);
@@ -225,6 +226,7 @@ export function AppProvider({ children }) {
     // Map focus
     const focusIncidentOnMap = (incident) => {
         setSelectedIncident(incident);
+        setActiveTab('gis');
         const coords = incident.geometry?.coordinates;
         if (coords && coords.length >= 2) {
             setMapFocusTarget({
@@ -233,11 +235,12 @@ export function AppProvider({ children }) {
                 zoom: 16,
                 incident
             });
-            // Smoothly scroll to map section
-            const mapSection = document.getElementById('gis-map-section');
-            if (mapSection) {
-                mapSection.scrollIntoView({ behavior: 'smooth' });
-            }
+            setTimeout(() => {
+                const mapSection = document.getElementById('gis-map-section');
+                if (mapSection) {
+                    mapSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 50);
         }
     };
 
@@ -266,6 +269,8 @@ export function AppProvider({ children }) {
             shelters,
             telemetry,
             leaderboard,
+            activeTab,
+            setActiveTab,
             activeRole,
             theme,
             soundEnabled,
