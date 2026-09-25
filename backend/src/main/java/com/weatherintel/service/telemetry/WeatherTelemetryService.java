@@ -55,7 +55,9 @@ public class WeatherTelemetryService {
      * Uses OpenWeatherMap API (configured via openWeatherAPI env variable) with resilient fallback.
      */
     public TelemetrySnapshot getTelemetry(double lat, double lon, String cityName) {
-        String key = String.format("%.2f_%.2f_%s", lat, lon, cityName != null ? cityName.toLowerCase() : "default");
+        String key = (cityName != null && !cityName.trim().isEmpty())
+                ? cityName.trim().toLowerCase()
+                : String.format("%.2f_%.2f", lat, lon);
         TelemetrySnapshot cached = cache.get(key);
         if (cached != null && cached.recordedAt.isAfter(LocalDateTime.now().minusMinutes(5))) {
             return cached;

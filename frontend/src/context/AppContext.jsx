@@ -244,6 +244,20 @@ export function AppProvider({ children }) {
         }
     };
 
+    // Live Telemetry search & update
+    const fetchTelemetry = async (city = 'Indore') => {
+        try {
+            const updated = await telemetryService.fetchTelemetry(city);
+            if (updated) {
+                setTelemetry(updated);
+            }
+            return updated;
+        } catch (e) {
+            console.warn('[AppContext] fetchTelemetry error:', e);
+            return null;
+        }
+    };
+
     // Export SITREP
     const downloadSitrep = async () => {
         try {
@@ -268,6 +282,8 @@ export function AppProvider({ children }) {
             reports,
             shelters,
             telemetry,
+            setTelemetry,
+            fetchTelemetry,
             leaderboard,
             activeTab,
             setActiveTab,

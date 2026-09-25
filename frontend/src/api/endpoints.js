@@ -56,8 +56,8 @@ export const endpoints = {
     // Citizen Sentinel Leaderboard (/api/reputation/leaderboard)
     getLeaderboard: () => request('/api/reputation/leaderboard'),
 
-    // IMD Telemetry Weather Data (/api/telemetry/current)
-    getTelemetry: (city = 'Indore') => request(`/api/telemetry/current?city=${encodeURIComponent(city)}`),
+    // IMD Telemetry Weather Data (/api/weather/current)
+    getTelemetry: (city = 'Indore') => request(`/api/weather/current?city=${encodeURIComponent(city)}`),
 
     // NDMA SACHET National Alerts
     getNationalAlerts: () => request('/api/alerts/national'),
@@ -101,8 +101,23 @@ export const endpoints = {
     }),
 
     // --- Weather API Endpoints ---
-    getWeatherCurrent: (city = 'Indore', lat = 22.7196, lon = 75.8577) => 
-        request(`/api/weather/current?city=${encodeURIComponent(city)}&lat=${lat}&lon=${lon}`),
+    getWeatherCurrent: (cityOrParams = 'Indore', lat = null, lon = null) => {
+        let city = 'Indore';
+        let queryParams = [];
+
+        if (typeof cityOrParams === 'object' && cityOrParams !== null) {
+            city = cityOrParams.city || 'Indore';
+            if (cityOrParams.lat != null) queryParams.push(`lat=${cityOrParams.lat}`);
+            if (cityOrParams.lon != null) queryParams.push(`lon=${cityOrParams.lon}`);
+        } else {
+            city = cityOrParams || 'Indore';
+            if (lat != null) queryParams.push(`lat=${lat}`);
+            if (lon != null) queryParams.push(`lon=${lon}`);
+        }
+
+        queryParams.push(`city=${encodeURIComponent(city)}`);
+        return request(`/api/weather/current?${queryParams.join('&')}`);
+    },
     
     getWeatherForecast: (city = 'Indore', lat = 22.7196, lon = 75.8577) => 
         request(`/api/weather/forecast?city=${encodeURIComponent(city)}&lat=${lat}&lon=${lon}`),
