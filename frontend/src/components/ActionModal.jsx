@@ -2,9 +2,10 @@
  * Action Modal Component
  * Tactical emergency dispatch interface for Ops Commanders
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import L from 'leaflet';
 import { useApp } from '../context/AppContext.jsx';
-import { Truck, X, ShieldAlert, CheckCircle, Radio } from 'lucide-react';
+import { Truck, X, ShieldAlert, CheckCircle, Radio, MapPin } from 'lucide-react';
 
 export default function ActionModal() {
     const { activeModal, modalData, closeModal, dispatchAction } = useApp();
@@ -13,9 +14,66 @@ export default function ActionModal() {
     const [notes, setNotes] = useState('Immediate inflatable boats deployment for waterlogged intersection.');
     const [submitting, setSubmitting] = useState(false);
 
-    if (activeModal !== 'action' || !modalData) return null;
+    const mapContainerRef = useRef(null);
+    const mapInstanceRef = useRef(null);
 
-    const p = modalData.properties || {};
+    const p = modalData?.properties || {};
+    const lat = parseFloat(p.latitude || (modalData?.geometry?.coordinates ? modalData.geometry.coordinates[1] : 22.7533)) || 22.7533;
+    const lng = parseFloat(p.longitude || (modalData?.geometry?.coordinates ? modalData.geometry.coordinates[0] : 75.8937)) || 75.8937;
+
+    useEffect(() => {
+        if (activeModal !== 'action' || !mapContainerRef.current) return;
+
+        if (!mapInstanceRef.current) {
+            const map = L.map(mapContainerRef.current, {
+                center: [lat, lng],
+                zoom: 14,
+                zoomControl: false,
+                attributionControl: false
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd'
+            }).addTo(map);
+
+            const icon = L.divIcon({
+                className: 'target-dispatch-pin',
+                html: `<div style="background:#dc2626; color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 12px rgba(220,38,38,0.8); font-size:13px; border:2px solid white;">🎯</div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+
+            L.marker([lat, lng], { icon }).addTo(map);
+            L.circle([lat, lng], {
+                radius: 400,
+                color: '#dc2626',
+                fillColor: '#ef4444',
+                fillOpacity: 0.2,
+                weight: 1.5,
+                dashArray: '3, 3'
+            }).addTo(map);
+
+            mapInstanceRef.current = map;
+        } else {
+            mapInstanceRef.current.setView([lat, lng], 14);
+            mapInstanceRef.current.invalidateSize();
+        }
+
+        const timer = setTimeout(() => {
+            if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
+        }, 150);
+
+        return () => {
+            clearTimeout(timer);
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.remove();
+                mapInstanceRef.current = null;
+            }
+        };
+    }, [activeModal, modalData, lat, lng]);
+
+    if (activeModal !== 'action' || !modalData) return null;
 
     const handleDispatch = async (e) => {
         e.preventDefault();
@@ -51,7 +109,16 @@ export default function ActionModal() {
                     <div className="modal-incident-summary">
                         <span className="summary-tracking">{p.trackingId || `REP-${p.id}`}</span>
                         <h4 className="summary-title">{p.title}</h4>
-                        <p className="summary-location">📍 {p.city || 'Indore'} ({p.district || 'Indore'})</p>
+                        <p className="summary-location">📍 {p.city || 'Indore'} ({p.district || 'Indore'}) • [{lat.toFixed(4)}, {lng.toFixed(4)}]</p>
+                    </div>
+
+                    {/* Leaflet Tactical Dispatch Mini-Map Canvas */}
+                    <div className="modal-target-map-box">
+                        <div className="modal-target-map-header">
+                            <span className="modal-target-title">🎯 Incident Ground Target Coordinate (Leaflet API)</span>
+                            <span className="modal-target-badge">Perimeter 400m Alert</span>
+                        </div>
+                        <div ref={mapContainerRef} className="modal-leaflet-canvas" />
                     </div>
 
                     <div className="input-field-group">

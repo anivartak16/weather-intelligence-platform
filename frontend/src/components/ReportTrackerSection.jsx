@@ -3,10 +3,12 @@
  * 3-Stage reporting wizard with client-side pHash media analysis and
  * a 5-stage horizontal lifecycle stepper connected directly to Spring State Machine.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import L from 'leaflet';
 import { useApp } from '../context/AppContext.jsx';
 import { endpoints } from '../api/endpoints.js';
 import { computeClientPHash } from '../utils/phash.js';
+import { createIncidentMarker, createShelterMarker } from '../utils/leafletIcons.js';
 import { 
     Send, 
     UploadCloud, 
@@ -21,11 +23,12 @@ import {
     Search,
     History,
     FileText,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Compass
 } from 'lucide-react';
 
-export default function ReportTrackerSection({ mode = 'all', initialTrackingId = null }) {
-    const { submitReport, reports, showToast, setActiveTab } = useApp();
+export default function ReportTrackerSection({ mode = 'all', initialTrackingId = null, hideHeader = false }) {
+    const { submitReport, reports, shelters, showToast, setActiveTab } = useApp();
 
     // Wizard Form State
     const [wizardStep, setWizardStep] = useState(1);
@@ -46,6 +49,81 @@ export default function ReportTrackerSection({ mode = 'all', initialTrackingId =
     const [trackingInput, setTrackingInput] = useState(initialTrackingId || '');
     const [liveTrackingData, setLiveTrackingData] = useState(null);
     const [isLoadingTracking, setIsLoadingTracking] = useState(false);
+
+    // Leaflet Interactive Location Picker (Step 1)
+    const pickerMapRef = useRef(null);
+    const pickerMapInstanceRef = useRef(null);
+    const pickerMarkerRef = useRef(null);
+
+    // Leaflet Interactive Incident Tracker Map
+    const trackerMapRef = useRef(null);
+    const trackerMapInstanceRef = useRef(null);
+    const trackerLayersRef = useRef(null);
+
+    // Initialize/Update Location Picker Map when on Step 1
+    useEffect(() => {
+        if (wizardStep !== 1 || !pickerMapRef.current) return;
+        
+        const lat = parseFloat(latitude) || 22.7533;
+        const lng = parseFloat(longitude) || 75.8937;
+
+        if (!pickerMapInstanceRef.current) {
+            const map = L.map(pickerMapRef.current, {
+                center: [lat, lng],
+                zoom: 14,
+                zoomControl: false,
+                attributionControl: false
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd'
+            }).addTo(map);
+
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            marker.bindTooltip('📍 Drag pin or click map to locate incident', { permanent: true, direction: 'top' });
+
+            marker.on('dragend', (e) => {
+                const pos = e.target.getLatLng();
+                setLatitude(pos.lat.toFixed(4));
+                setLongitude(pos.lng.toFixed(4));
+            });
+
+            map.on('click', (e) => {
+                marker.setLatLng(e.latlng);
+                setLatitude(e.latlng.lat.toFixed(4));
+                setLongitude(e.latlng.lng.toFixed(4));
+            });
+
+            pickerMapInstanceRef.current = map;
+            pickerMarkerRef.current = marker;
+        } else {
+            pickerMapInstanceRef.current.invalidateSize();
+            if (pickerMarkerRef.current) {
+                pickerMarkerRef.current.setLatLng([lat, lng]);
+            }
+        }
+
+        return () => {
+            if (wizardStep !== 1 && pickerMapInstanceRef.current) {
+                pickerMapInstanceRef.current.remove();
+                pickerMapInstanceRef.current = null;
+                pickerMarkerRef.current = null;
+            }
+        };
+    }, [wizardStep]);
+
+    // Sync input coordinates to map marker
+    useEffect(() => {
+        const lat = parseFloat(latitude);
+        const lng = parseFloat(longitude);
+        if (!isNaN(lat) && !isNaN(lng) && pickerMarkerRef.current && pickerMapInstanceRef.current) {
+            pickerMarkerRef.current.setLatLng([lat, lng]);
+            pickerMapInstanceRef.current.panTo([lat, lng]);
+        }
+    }, [latitude, longitude]);
 
     useEffect(() => {
         if (initialTrackingId) {
@@ -175,6 +253,111 @@ export default function ReportTrackerSection({ mode = 'all', initialTrackingId =
     const currentStageIndex = getStageIndex(activeReport.status);
     const isFalseAlarm = activeReport.status === 'FALSE_ALARM' || activeReport.isRumor;
 
+    // Leaflet Interactive Incident Tracker Map
+    useEffect(() => {
+        if (!trackerMapRef.current) return;
+
+        const repLat = parseFloat(activeReport.latitude || activeReport.lat) || 22.7533;
+        const repLng = parseFloat(activeReport.longitude || activeReport.lng) || 75.8937;
+
+        if (!trackerMapInstanceRef.current) {
+            const map = L.map(trackerMapRef.current, {
+                center: [repLat, repLng],
+                zoom: 14,
+                zoomControl: false,
+                attributionControl: false
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd'
+            }).addTo(map);
+
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            const layersGroup = L.layerGroup().addTo(map);
+
+            trackerMapInstanceRef.current = map;
+            trackerLayersRef.current = layersGroup;
+        }
+
+        const map = trackerMapInstanceRef.current;
+        const group = trackerLayersRef.current;
+        if (!map || !group) return;
+
+        group.clearLayers();
+        map.setView([repLat, repLng], 14);
+
+        // Add incident marker
+        const incidentIcon = L.divIcon({
+            className: 'custom-map-pin incident-pin',
+            html: `<div style="background:#dc2626; color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 10px rgba(220,38,38,0.7); font-size:14px; border:2px solid white;">⚠️</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+        const incMarker = L.marker([repLat, repLng], { icon: incidentIcon }).addTo(group);
+        incMarker.bindPopup(`
+            <div style="font-family:sans-serif; min-width:160px; font-size:12px;">
+                <strong style="color:#b91c1c;">${activeReport.title || 'Reported Incident'}</strong><br/>
+                <span style="color:#475569;">Token: <b>${activeReport.trackingId || selectedTrackId}</b></span><br/>
+                <span style="color:#475569;">Status: <b>${activeReport.status || 'SUBMITTED'}</b></span>
+            </div>
+        `);
+
+        // Danger radius circle
+        L.circle([repLat, repLng], {
+            radius: 400,
+            color: '#ef4444',
+            fillColor: '#ef4444',
+            fillOpacity: 0.15,
+            weight: 1.5,
+            dashArray: '4, 4'
+        }).addTo(group);
+
+        // Nearest Shelter & corridor
+        if (shelters && shelters.length > 0) {
+            let nearest = shelters[0];
+            let minDist = 999999;
+            shelters.forEach(s => {
+                const sLat = s.latitude || s.lat || 22.75;
+                const sLng = s.longitude || s.lng || 75.89;
+                const d = Math.hypot(sLat - repLat, sLng - repLng);
+                if (d < minDist) {
+                    minDist = d;
+                    nearest = s;
+                }
+            });
+
+            const nLat = nearest.latitude || nearest.lat || 22.76;
+            const nLng = nearest.longitude || nearest.lng || 75.90;
+
+            const shelterIcon = L.divIcon({
+                className: 'custom-map-pin shelter-pin',
+                html: `<div style="background:#16a34a; color:white; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 8px rgba(22,163,74,0.6); font-size:13px; border:2px solid white;">🛡️</div>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+            });
+            const shMarker = L.marker([nLat, nLng], { icon: shelterIcon }).addTo(group);
+            shMarker.bindPopup(`
+                <div style="font-family:sans-serif; min-width:150px; font-size:12px;">
+                    <strong style="color:#15803d;">${nearest.name || 'Emergency Evacuation Shelter'}</strong><br/>
+                    <span style="color:#475569;">Safe Distance: ${(minDist * 111).toFixed(1)} km</span>
+                </div>
+            `);
+
+            // Safe Evacuation corridor polyline
+            L.polyline([[repLat, repLng], [nLat, nLng]], {
+                color: '#16a34a',
+                weight: 3,
+                dashArray: '6, 6',
+                opacity: 0.85
+            }).addTo(group);
+        }
+
+        setTimeout(() => {
+            if (map) map.invalidateSize();
+        }, 150);
+    }, [activeReport, selectedTrackId, shelters, mode]);
+
     const headerTitle = mode === 'report' 
         ? 'Citizen Disaster Incident Reporting' 
         : mode === 'tracker' 
@@ -194,12 +377,14 @@ export default function ReportTrackerSection({ mode = 'all', initialTrackingId =
             : 'Submit verified ground observation with client-side media fingerprinting, and monitor end-to-end disaster response progression through Spring State Machine.';
 
     return (
-        <section id="report-tracker-section" className={`section-container report-tracker-section ${mode !== 'all' ? 'focused-mode' : ''}`}>
-            <div className="section-header-meta">
-                <span className="section-eyebrow">{headerEyebrow}</span>
-                <h2 className="section-title">{headerTitle}</h2>
-                <p className="section-desc">{headerDesc}</p>
-            </div>
+        <section id="report-tracker-section" className={`section-container report-tracker-section ${mode !== 'all' ? 'focused-mode' : ''} ${hideHeader ? 'header-suppressed' : ''}`}>
+            {!hideHeader && (
+                <div className="section-header-meta">
+                    <span className="section-eyebrow">{headerEyebrow}</span>
+                    <h2 className="section-title">{headerTitle}</h2>
+                    <p className="section-desc">{headerDesc}</p>
+                </div>
+            )}
 
             <div className={`report-tracker-layout ${mode !== 'all' ? 'single-column-layout' : ''}`}>
                 {/* Left Side: 3-Stage Reporting Wizard */}
@@ -264,6 +449,15 @@ export default function ReportTrackerSection({ mode = 'all', initialTrackingId =
                                         <MapPin size={16} />
                                     </button>
                                 </div>
+                            </div>
+
+                            {/* Interactive Leaflet Location Picker (Leaflet API) */}
+                            <div className="location-picker-map-box">
+                                <div className="picker-map-header">
+                                    <span className="picker-map-title">📍 Interactive Pin Placement (Leaflet API)</span>
+                                    <span className="picker-map-sub">Click anywhere on the map or drag the pin to set exact coordinates</span>
+                                </div>
+                                <div ref={pickerMapRef} className="picker-leaflet-canvas" />
                             </div>
 
                             <div className="wizard-footer">
@@ -461,6 +655,18 @@ export default function ReportTrackerSection({ mode = 'all', initialTrackingId =
                             </div>
                         </div>
                     )}
+                    {/* Leaflet Incident Geolocation & Nearest Safe Route (Leaflet API) */}
+                    <div className="tracker-map-box">
+                        <div className="tracker-map-meta">
+                            <span className="tracker-map-title">📍 Live Geospatial Incident Position & Safety Zone (Leaflet API)</span>
+                            <span className="tracker-map-coords">
+                                {activeReport.latitude && activeReport.longitude 
+                                    ? `${parseFloat(activeReport.latitude).toFixed(4)}° N, ${parseFloat(activeReport.longitude).toFixed(4)}° E` 
+                                    : 'Indore Command Region'}
+                            </span>
+                        </div>
+                        <div ref={trackerMapRef} className="tracker-leaflet-canvas" />
+                    </div>
 
                     {/* Incident Summary Card */}
                     <div className="tracked-summary-box">

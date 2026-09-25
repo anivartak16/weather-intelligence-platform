@@ -8,7 +8,7 @@ import { useApp } from '../context/AppContext.jsx';
 import { getBadgeDetails } from '../utils/formatters.js';
 import { Award, ShieldCheck, Star, Users, Flame, CheckCircle, TrendingUp } from 'lucide-react';
 
-export default function CivicTrustSection() {
+export default function CivicTrustSection({ hideHeader = false }) {
     const { leaderboard } = useApp();
 
     // Active User profile (Arun Sharma - Disaster Sentinel)
@@ -23,14 +23,16 @@ export default function CivicTrustSection() {
     const userBadge = getBadgeDetails(currentUser.badgeTier);
 
     return (
-        <section id="civic-trust-section" className="section-container civic-trust-section">
-            <div className="section-header-meta">
-                <span className="section-eyebrow">Civic Gamification & Reliability</span>
-                <h2 className="section-title">Sentinel Trust & Community Leaderboard</h2>
-                <p className="section-desc">
-                    Anti-disinformation trust framework rewarding citizens who report verified ground conditions and penalizing panic-inducing falsehoods.
-                </p>
-            </div>
+        <section id="civic-trust-section" className={`section-container civic-trust-section ${hideHeader ? 'header-suppressed' : ''}`}>
+            {!hideHeader && (
+                <div className="section-header-meta">
+                    <span className="section-eyebrow">Civic Gamification & Reliability</span>
+                    <h2 className="section-title">Sentinel Trust & Community Leaderboard</h2>
+                    <p className="section-desc">
+                        Anti-disinformation trust framework rewarding citizens who report verified ground conditions and penalizing panic-inducing falsehoods.
+                    </p>
+                </div>
+            )}
 
             <div className="civic-trust-grid">
                 {/* Left Card: Active Citizen Sentinel Profile */}

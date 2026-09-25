@@ -98,5 +98,25 @@ export const endpoints = {
     compareForensics: (hash1, hash2) => request('/api/forensics/compare', {
         method: 'POST',
         body: JSON.stringify({ hash1, hash2 })
-    })
+    }),
+
+    // --- Weather API Endpoints ---
+    getWeatherCurrent: (city = 'Indore', lat = 22.7196, lon = 75.8577) => 
+        request(`/api/weather/current?city=${encodeURIComponent(city)}&lat=${lat}&lon=${lon}`),
+    
+    getWeatherForecast: (city = 'Indore', lat = 22.7196, lon = 75.8577) => 
+        request(`/api/weather/forecast?city=${encodeURIComponent(city)}&lat=${lat}&lon=${lon}`),
+    
+    getWeatherStations: () => 
+        request('/api/weather/stations'),
+    
+    getRadarTelemetry: (stationId = 'IND-DWR-01') => 
+        request(`/api/weather/radar-telemetry?stationId=${encodeURIComponent(stationId)}`),
+
+    // --- Leaflet GIS API Endpoints ---
+    getLeafletConfig: () => 
+        request('/api/leaflet/config'),
+    
+    getLeafletLayer: (layerName) => 
+        request(`/api/leaflet/layers/${encodeURIComponent(layerName)}`)
 };

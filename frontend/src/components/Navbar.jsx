@@ -1,10 +1,10 @@
 /**
  * Navbar Component
- * KrishiLink-inspired National Navigation Header with react-router-dom NavLinks,
- * role switcher, active live badges, audio alerts, and theme toggle.
+ * Authentic Government of India Disaster Operations Console Navigation Header
+ * Clear, uncluttered 7-module structure with high-contrast active states.
  */
 import React from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext.jsx';
 import { 
     Shield, 
@@ -13,18 +13,15 @@ import {
     Map, 
     Radio, 
     Send, 
-    Fingerprint, 
-    Share2, 
     FileText, 
-    Award, 
     Bell,
     Volume2, 
     VolumeX, 
     Sun, 
     Moon, 
     User, 
-    PhoneCall, 
-    Sparkles 
+    Sparkles,
+    PhoneCall
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -42,49 +39,46 @@ export default function Navbar() {
     const isOps = activeRole === 'OPS_DISPATCHER';
     const criticalCount = reports.filter(r => r.properties?.severity === 'CRITICAL').length;
 
+    // Streamlined 7 Core Government Console Modules
     const navItems = [
-        { path: '/', label: 'National Portal', icon: Home, end: true },
-        { path: '/dashboard', label: 'Command Center', icon: LayoutDashboard },
+        { path: '/', label: 'Overview', icon: Home, end: true },
+        { path: '/dashboard', label: 'Operations Command', icon: LayoutDashboard },
         { path: '/map', label: 'GIS Radar Map', icon: Map },
         { path: '/incidents', label: 'Incident Desk', icon: Radio, count: reports.length, alert: criticalCount > 0 },
-        { path: '/report', label: 'Report Disaster', icon: Send },
-        { path: '/track', label: 'Tracking Ledger', icon: Fingerprint },
-        { path: '/social', label: '#IMD Social Hub', icon: Share2 },
+        { path: '/citizen', label: 'Citizen Services', icon: Send },
         { path: '/sitrep', label: 'Tactical SITREP', icon: FileText },
-        { path: '/sentinels', label: 'Civic Sentinels', icon: Award },
-        { path: '/alerts', label: 'Alerts', icon: Bell }
+        { path: '/alerts', label: 'National Alerts', icon: Bell }
     ];
 
     return (
         <header className="navbar-header-sticky">
             <div className="navbar-container">
-                {/* Brand & Authority */}
+                {/* Brand Identity */}
                 <Link 
                     to="/" 
                     className="navbar-brand-group" 
                     title="National Weather Intelligence & Ground Truth System"
                 >
                     <div className="brand-logo-icon">
-                        <Shield size={24} className="text-brand-primary" />
-                        <span className="logo-radar-ring"></span>
+                        <Shield size={22} className="text-brand-primary" />
                     </div>
                     <div>
                         <div className="brand-title-row">
-                            <span className="brand-title">सुरक्षा-नेट</span>
+                            <span className="brand-title">सुरक्षा-NET</span>
                             <span className="brand-title-sub">SURAKSHA-NET</span>
                             <span className="brand-live-badge">
                                 <span className="pulse-dot"></span>
-                                LIVE
+                                ACTIVE
                             </span>
                         </div>
                         <span className="brand-subtitle">
-                            National Weather Intelligence & Ground Truth System
+                            National Disaster Operations Console • Ministry of Earth Sciences & IMD
                         </span>
                     </div>
                 </Link>
 
-                {/* Primary Navigation Links with real URLs */}
-                <nav className="navbar-primary-nav" aria-label="Portal Navigation">
+                {/* Primary Console Navigation */}
+                <nav className="navbar-primary-nav" aria-label="Government Console Navigation">
                     {navItems.map(item => {
                         const Icon = item.icon;
                         return (
@@ -106,14 +100,14 @@ export default function Navbar() {
                     })}
                 </nav>
 
-                {/* Right Utility Controls */}
+                {/* Right Operational Controls */}
                 <div className="navbar-controls-group">
                     {/* Role Switcher Pill */}
                     <div className="role-switch-container">
                         <button 
                             className={`role-switch-btn ${!isOps ? 'active' : ''}`}
                             onClick={() => !isOps || toggleRole()}
-                            title="Switch to Citizen Scout View"
+                            title="Switch to Citizen View"
                         >
                             <User size={13} />
                             <span>Citizen</span>
@@ -121,49 +115,40 @@ export default function Navbar() {
                         <button 
                             className={`role-switch-btn ${isOps ? 'active' : ''}`}
                             onClick={() => isOps || toggleRole()}
-                            title="Switch to DEOC Commander View"
+                            title="Switch to Commander View"
                         >
                             <Shield size={13} />
                             <span>Commander</span>
                         </button>
                     </div>
 
-                    {/* Simulation Button */}
+                    {/* Simulation Drill Launcher */}
                     <button 
                         className="control-icon-btn simulation-btn"
                         onClick={openSimulationModal}
-                        title="Execute Crisis Scenario Drill"
+                        title="Simulate Crisis Drill (Flash Flood / Cyclone)"
                     >
-                        <Sparkles size={15} />
+                        <Sparkles size={14} />
+                        <span className="control-btn-label">Drill</span>
                     </button>
 
-                    {/* Audio Alert Siren */}
+                    {/* Audio Alert Bell */}
                     <button 
                         className="control-icon-btn"
                         onClick={toggleSound}
-                        title={soundEnabled ? "Mute audio sirens" : "Enable audio sirens"}
+                        title={soundEnabled ? "Mute audio alerts" : "Enable audio alerts"}
                     >
-                        {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                        {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
                     </button>
 
                     {/* Theme Mode Toggle */}
                     <button 
                         className="control-icon-btn"
                         onClick={toggleTheme}
-                        title={theme === 'light' ? "Switch to Command Dark Mode" : "Switch to Daylight Mode"}
+                        title={theme === 'light' ? "Switch to Dark Console" : "Switch to Light Console"}
                     >
-                        {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+                        {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
                     </button>
-
-                    {/* Emergency 112 SOS Button */}
-                    <a 
-                        href="tel:112" 
-                        className="nav-emergency-sos-btn"
-                        title="Emergency Rescue: Dial 112"
-                    >
-                        <PhoneCall size={13} />
-                        <span>112 SOS</span>
-                    </a>
                 </div>
             </div>
         </header>

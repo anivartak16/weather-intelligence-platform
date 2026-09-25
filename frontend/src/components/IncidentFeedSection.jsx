@@ -28,7 +28,7 @@ import {
     SlidersHorizontal
 } from 'lucide-react';
 
-export default function IncidentFeedSection() {
+export default function IncidentFeedSection({ hideHeader = false }) {
     const { 
         reports, 
         activeRole, 
@@ -82,14 +82,16 @@ export default function IncidentFeedSection() {
     });
 
     return (
-        <section id="incident-feed-section" className="section-container incident-feed-section">
-            <div className="section-header-meta">
-                <span className="section-eyebrow">Crowdsourced Ground Observation</span>
-                <h2 className="section-title">Verified Ground-Truth Incident Stream</h2>
-                <p className="section-desc">
-                    Real-time field reports synthesized with automated pHash image deduplication, LLM sentiment audit, and commander verification.
-                </p>
-            </div>
+        <section id="incident-feed-section" className={`section-container incident-feed-section ${hideHeader ? 'header-suppressed' : ''}`}>
+            {!hideHeader && (
+                <div className="section-header-meta">
+                    <span className="section-eyebrow">Crowdsourced Ground Observation</span>
+                    <h2 className="section-title">Verified Ground-Truth Incident Stream</h2>
+                    <p className="section-desc">
+                        Real-time field reports synthesized with automated pHash image deduplication, LLM sentiment audit, and commander verification.
+                    </p>
+                </div>
+            )}
 
             {/* Quick Tabs & Search */}
             <div className="feed-toolbar-container">
