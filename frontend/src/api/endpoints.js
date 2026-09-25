@@ -113,6 +113,19 @@ export const endpoints = {
     getRadarTelemetry: (stationId = 'IND-DWR-01') => 
         request(`/api/weather/radar-telemetry?stationId=${encodeURIComponent(stationId)}`),
 
+    // Direct OpenWeatherMap API Call (using openWeatherAPI key from env)
+    getOpenWeatherLive: async (city = 'Indore', apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY || 'fe4fd9c5e7d8104bbcad4360ab880f6b') => {
+        try {
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&appid=${apiKey}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`OpenWeather API returned ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            console.warn('[OpenWeatherMap Direct API] Fallback to backend weather proxy:', err.message);
+            return null;
+        }
+    },
+
     // --- Leaflet GIS API Endpoints ---
     getLeafletConfig: () => 
         request('/api/leaflet/config'),

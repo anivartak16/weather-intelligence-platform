@@ -26,10 +26,10 @@ import {
 } from 'lucide-react';
 
 const BASE_TILES = {
-    voyager: {
-        name: 'Voyager',
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        subdomains: 'abcd',
+    osm: {
+        name: 'OpenStreetMap',
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        subdomains: 'abc',
         maxZoom: 19
     },
     satellite: {
@@ -37,12 +37,6 @@ const BASE_TILES = {
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         subdomains: 'abc',
         maxZoom: 18
-    },
-    osm: {
-        name: 'OSM',
-        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        subdomains: 'abc',
-        maxZoom: 19
     }
 };
 
@@ -69,7 +63,7 @@ export default function GisMapSection({ hideHeader = false }) {
     } = useApp();
 
     // Leaflet API & Map State
-    const [activeTile, setActiveTile] = useState('voyager');
+    const [activeTile, setActiveTile] = useState('osm');
     const [showShelters, setShowShelters] = useState(true);
     const [showEvacRoutes, setShowEvacRoutes] = useState(true);
     const [showRadar, setShowRadar] = useState(true);
@@ -90,10 +84,10 @@ export default function GisMapSection({ hideHeader = false }) {
             attributionControl: false
         });
 
-        // Add Default Base Tile Layer
-        baseTileLayerRef.current = L.tileLayer(BASE_TILES.voyager.url, {
-            maxZoom: BASE_TILES.voyager.maxZoom,
-            subdomains: BASE_TILES.voyager.subdomains
+        // Add Default Base Tile Layer (OpenStreetMap - No API key required)
+        baseTileLayerRef.current = L.tileLayer(BASE_TILES.osm.url, {
+            maxZoom: BASE_TILES.osm.maxZoom,
+            subdomains: BASE_TILES.osm.subdomains
         }).addTo(map);
 
         // Zoom control in bottom right
@@ -485,11 +479,11 @@ export default function GisMapSection({ hideHeader = false }) {
                     {/* Base Tile Layer Switcher (Leaflet API) */}
                     <div className="tile-switch-group">
                         <button
-                            className={`map-tile-btn ${activeTile === 'voyager' ? 'active' : ''}`}
-                            onClick={() => handleTileChange('voyager')}
-                            title="CartoDB Voyager Official Base Map"
+                            className={`map-tile-btn ${activeTile === 'osm' ? 'active' : ''}`}
+                            onClick={() => handleTileChange('osm')}
+                            title="OpenStreetMap Standard Map"
                         >
-                            🗺️ Voyager
+                            🧭 Street Map (OSM)
                         </button>
                         <button
                             className={`map-tile-btn ${activeTile === 'satellite' ? 'active' : ''}`}
@@ -497,13 +491,6 @@ export default function GisMapSection({ hideHeader = false }) {
                             title="ESRI World Satellite High-Resolution Imagery"
                         >
                             🛰️ Satellite
-                        </button>
-                        <button
-                            className={`map-tile-btn ${activeTile === 'osm' ? 'active' : ''}`}
-                            onClick={() => handleTileChange('osm')}
-                            title="OpenStreetMap Standard Map"
-                        >
-                            🧭 OSM
                         </button>
                     </div>
 
