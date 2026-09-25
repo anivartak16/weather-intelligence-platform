@@ -78,7 +78,17 @@ export const endpoints = {
     scrapeSocialNow: (count = 3) => request(`/api/social/scrape-now?count=${count}`, {
         method: 'POST'
     }),
+    getSocialPulse: () => request('/api/social/pulse'),
     getSocialAnalytics: () => request('/api/social/analytics'),
+    getTrendingHashtags: () => request('/api/social/trending-hashtags'),
+    getReportedAreas: () => request('/api/social/reported-areas'),
+    getBreakingAlert: () => request('/api/social/breaking-alert'),
+    getAiInsight: () => request('/api/social/ai-insight'),
+    verifySocialPost: (id) => request(`/api/social/${id}/verify`, { method: 'PUT' }),
+    flagSocialPost: (id, reason) => request(`/api/social/${id}/flag`, {
+        method: 'PUT',
+        body: JSON.stringify({ reason })
+    }),
 
     // Crisis Simulation Triggers
     triggerSimulation: (scenario = 'FLASH_FLOOD') => request('/api/simulate/crisis', {

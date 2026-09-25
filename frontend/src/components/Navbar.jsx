@@ -21,7 +21,8 @@ import {
     Moon, 
     User, 
     Sparkles,
-    PhoneCall
+    PhoneCall,
+    Share2
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -39,12 +40,13 @@ export default function Navbar() {
     const isOps = activeRole === 'OPS_DISPATCHER';
     const criticalCount = reports.filter(r => r.properties?.severity === 'CRITICAL').length;
 
-    // Streamlined 7 Core Government Console Modules
+    // Core Government Console Modules
     const navItems = [
         { path: '/', label: 'Overview', icon: Home, end: true },
         { path: '/dashboard', label: 'Operations Command', icon: LayoutDashboard },
         { path: '/map', label: 'GIS Radar Map', icon: Map },
         { path: '/incidents', label: 'Incident Desk', icon: Radio, count: reports.length, alert: criticalCount > 0 },
+        { path: '/social', label: 'Social Media', icon: Share2 },
         { path: '/citizen', label: 'Citizen Services', icon: Send },
         { path: '/sitrep', label: 'Tactical SITREP', icon: FileText },
         { path: '/alerts', label: 'National Alerts', icon: Bell }
