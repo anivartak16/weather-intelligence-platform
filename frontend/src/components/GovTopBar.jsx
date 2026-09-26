@@ -5,7 +5,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext.jsx';
 import { Shield, Sparkles, PhoneCall } from 'lucide-react';
-
+///updates for some
 export default function GovTopBar() {
     const { openSimulationModal, telemetry } = useApp();
 
